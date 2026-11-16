@@ -5,7 +5,7 @@ Authors@R:
     person(given = "Yunxuan",
            family = "Zhang",
            role = c("aut", "cre"),
-           email = "yzhang69@hsph.harvard.edu"
+           email = "yzhang69@hsph.harvard.edu")
 Description: This package contains code, data, and reports for the
     BST260 final project. It documents data sources and provides
     descriptive statistics and reproducible analyses of two datasets.
