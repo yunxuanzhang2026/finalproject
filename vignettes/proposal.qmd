@@ -1,0 +1,170 @@
+---
+title: "Beyond Accuracy: Comparing Interpretability and Fairness in Public Health Prediction"
+author: "Yunxuan Zhang"
+date: "2026-11-18"
+format: html
+---
+
+**To: BST260 Teaching Team, Fall 2026**
+
+## 1. Project Overview
+
+Prediction models may perform well overall while missing high-risk observations in specific population groups. Examining these differences is important when interpreting predictions for public health research and risk assessment.
+
+This project will investigate two public health problems using the National Health and Nutrition Examination Survey (NHANES) and CDC firearm mortality data. The NHANES analysis will examine elevated measured blood pressure among U.S. adults, with particular attention to prediction errors across age and sex groups. The CDC analysis will describe geographic and temporal patterns in firearm mortality and evaluate how well models identify state-years with relatively high mortality rates.
+
+I will compare Logistic Regression and Random Forest in both analyses. The comparison will focus on discrimination, calibration, predictor importance, and differences in prediction errors across demographic or geographic groups. These subgroup comparisons will address one aspect of predictive fairness without attempting to establish whether either model is fair in a broader social or ethical sense.
+
+## 2. Research Questions
+
+### Vignette 1: NHANES — Blood Pressure Prediction
+
+Among NHANES participants aged 20 years or older, how is body mass index (BMI) associated with elevated measured blood pressure after adjusting for age, sex, and smoking history?
+
+I will estimate the adjusted association between BMI and elevated measured blood pressure using Logistic Regression. I will then compare Logistic Regression and Random Forest in predicting this outcome and examine whether false negative rates differ across age and sex groups.
+
+### Vignette 2: CDC — Geographic Patterns and Firearm Mortality
+
+How do firearm mortality rates vary across U.S. states, geographic regions, and observed years, and how accurately can calendar year and Census region identify state-years with relatively high firearm mortality rates?
+
+This vignette will first describe geographic and temporal variation in firearm mortality. I will then evaluate the classification performance of Logistic Regression and Random Forest, including differences in prediction errors across regions.
+
+## 3. Data Sources and Study Variables
+
+### 3.1 NHANES
+
+The first analysis will use the `NHANES` R package, which includes observations from the 2009–2010 and 2011–2012 survey cycles.
+
+The dataset contains 10,000 observations and 77 variables. Of these, 7,235 observations are from participants aged 20 years or older.
+
+- **Unit of analysis:** Individual participant
+- **Study population:** Adults aged 20 years or older
+- **Primary exposure:** BMI (`BMI`), modeled continuously
+- **Outcome:** Elevated measured blood pressure, coded as a binary variable
+- **Additional predictors:** Age (`Age`), sex (`Sex`), and smoking history (`Smoke100`)
+- **Potential confounders:** Age, sex, and smoking history
+
+Elevated measured blood pressure will be defined as average systolic blood pressure (`BPSysAve`) ≥130 mmHg or average diastolic blood pressure (`BPDiaAve`) ≥80 mmHg. This outcome reflects blood-pressure measurements available in the dataset and does not incorporate medication use or clinical diagnosis.
+
+Smoking history will be represented by `Smoke100`, which records whether a participant has smoked at least 100 cigarettes during their lifetime. BMI and age will be treated as continuous variables, while sex and smoking history will be coded as categorical predictors.
+
+Among eligible adults, 63 have missing BMI values and 264 have missing average blood-pressure measurements. Age, sex, and `Smoke100` have no missing values. The primary analysis will use the 6,919 participants with complete data for these variables.
+
+I will report the characteristics of the analysis sample and document exclusions resulting from missing measurements.
+
+### 3.2 CDC Firearm Mortality
+
+The second analysis will use `cdcfiremort`, provided in the BST260 project package and derived from CDC state-level firearm mortality statistics.
+
+The dataset contains 612 state-year observations covering the 50 U.S. states and Washington, D.C. It includes 12 observed years: 2005 and 2014–2024. Each geographic unit has one record per year, with no missing values or duplicate state-year observations.
+
+- **Unit of analysis:** State-year
+- **Study population:** The 50 U.S. states and Washington, D.C., during the observed years
+- **Explanatory variables:** Calendar year (`YEAR`) and U.S. Census region derived from `Location`
+- **Continuous outcome for descriptive analysis:** Firearm mortality rate (`Death.Rate`)
+- **Binary outcome for classification:** Relatively high firearm mortality
+- **Additional descriptive variable:** Firearm death count (`Deaths.`)
+
+For the classification analysis, I will define relatively high mortality as a firearm death rate at or above the 75th percentile of the training data. The resulting threshold will be applied to the held-out observations without recalculation.
+
+This definition identifies relatively high mortality within the study data rather than using an official public health risk threshold. I will report the cutoff and the number of observations in each outcome category.
+
+## 4. Statistical Analysis
+
+### 4.1 Vignette 1: NHANES
+
+**Descriptive Analysis**
+
+I will summarize age, BMI, sex, smoking history, and elevated measured blood-pressure prevalence among eligible adults. Tables will present the distributions of study variables and missing observations. I will use plots to examine BMI distributions and the relationship between BMI and elevated measured blood pressure.
+
+**Association and Prediction**
+
+I will fit a multivariable Logistic Regression model with BMI, age, sex, and smoking history as predictors. I will report the adjusted BMI odds ratio with its confidence interval and examine the direction and magnitude of the association.
+
+I will also fit a Random Forest classifier using the same predictors. The data will be divided into stratified training and test sets, with cross-validation and model tuning performed within the training set.
+
+Both models will be evaluated on the same held-out observations. I will compare their discrimination, calibration, and classification errors using the evaluation procedures described in Section 4.3.
+
+**Interpretability and Subgroup Performance**
+
+For Logistic Regression, I will examine coefficients and odds ratios, including standardized coefficients for comparing predictor rankings. For Random Forest, I will calculate permutation-based feature importance using held-out data.
+
+I will evaluate model performance separately by sex and across three age groups: 20–39, 40–59, and 60 years or older. The subgroup analysis will focus on sensitivity and false negative rates, alongside ROC-AUC where sufficient outcome variation is available.
+
+I will report subgroup sample sizes and outcome frequencies to support interpretation of these comparisons.
+
+### 4.2 Vignette 2: CDC Firearm Mortality
+
+**Part A: Descriptive Epidemiology**
+
+I will examine firearm mortality rates across states, Census regions, and observed years.
+
+The analysis will include annual distributions of state-level mortality rates, regional comparisons, and changes in mortality rates over time. I will also identify states with consistently elevated rates during the available observation periods.
+
+Summary tables, time-series plots, and geographic visualizations will be used to present these patterns. I will distinguish unweighted averages of state-level rates from population-weighted national estimates.
+
+**Part B: Predictive Modeling**
+
+I will fit Logistic Regression and Random Forest classifiers using calendar year and Census region as predictors of relatively high firearm mortality.
+
+The data will be split by state so that all observations from a given state remain in either the training set or the test set. Cross-validation will follow the same state-grouped structure.
+
+Within each cross-validation fold, the high-mortality threshold will be determined from the training portion and applied to the corresponding validation observations. For final test-set evaluation, the threshold will be determined using the full training set.
+
+I will compare the models' ability to identify relatively high-mortality state-years and examine prediction errors across Census regions where sufficient observations are available.
+
+This validation design will assess performance for states excluded from model training. It will not be interpreted as an evaluation of future-year forecasting.
+
+### 4.3 Model Evaluation
+
+I will use the following measures to evaluate both classification tasks:
+
+- **ROC-AUC:** Discrimination between positive and negative observations.
+- **Sensitivity:** Proportion of positive observations correctly identified.
+- **Specificity:** Proportion of negative observations correctly identified.
+- **False negative rate:** Proportion of positive observations incorrectly classified as negative.
+- **Brier score:** Mean squared difference between predicted probabilities and observed outcomes.
+- **Calibration plots:** Agreement between predicted probabilities and observed outcome frequencies.
+
+Classification thresholds will be selected using training data and held fixed for evaluation on the corresponding test observations.
+
+I will compare overall model performance with subgroup-specific results. In particular, I will examine whether a model with better overall discrimination also achieves lower false negative rates across the demographic or geographic groups studied.
+
+Predictor rankings will be compared using standardized Logistic Regression coefficients and Random Forest permutation importance. Because these measures represent different quantities, I will interpret their rankings rather than directly comparing their numerical values.
+
+## 5. Confounding, Missing Data, and Uncertainty
+
+In the NHANES analysis, I will adjust for age, sex, and smoking history when estimating the association between BMI and elevated measured blood pressure. These variables are selected before model fitting because they may be related to both BMI and blood pressure.
+
+The primary NHANES analysis will use complete cases. I will report missingness for each analysis variable and the number of observations excluded. I will also discuss how these exclusions may affect interpretation.
+
+The CDC dataset contains no missing values in its recorded variables. Census region will be derived from state names using a documented mapping.
+
+Where feasible, I will calculate uncertainty intervals for model performance and subgroup differences through resampling. For CDC, resampling will account for repeated observations within states.
+
+I will also examine the availability of NHANES survey-design information and distinguish analyses of the available sample from estimates intended to represent the U.S. adult population.
+
+## 6. Interpretation and Limitations
+
+The main comparison will examine whether differences in overall predictive performance are accompanied by differences in subgroup classification errors. I will also assess whether the models identify similar important predictors and whether their predicted probabilities are well calibrated.
+
+For NHANES, the blood-pressure outcome is based on available measurements rather than a complete clinical hypertension definition. Missing measurements and the survey sampling design may affect interpretation. The estimated association between BMI and blood pressure will not be treated as a causal effect.
+
+For CDC firearm mortality, the descriptive analysis will document geographic and temporal patterns in the observed data. The classification analysis will use only calendar year and Census region, limiting the information available for prediction. The dataset also contains just 51 geographic units and a noncontinuous set of observed years.
+
+Converting mortality rates into a binary outcome will reduce information about differences in mortality burden. The choice of classification threshold and held-out states may also affect the results.
+
+Subgroup performance comparisons will describe differences in prediction errors. They will not, by themselves, establish discrimination, explain the causes of observed disparities, or determine how public health resources should be allocated.
+
+## 7. Project Deliverables
+
+The final project will include:
+
+1. A valid R package named `finalproject`, with a public website generated using `pkgdown`.
+2. Two Quarto vignettes analyzing NHANES and CDC firearm mortality data.
+3. Reproducible R code for data preparation, descriptive analysis, model fitting, validation, and evaluation.
+4. Tables documenting study variables, missingness, descriptive statistics, and model performance.
+5. Figures showing BMI and blood-pressure patterns, firearm mortality distributions, geographic and temporal variation, calibration, predictor importance, and subgroup performance.
+6. Scientific reports of the findings, uncertainty, data provenance, and limitations.
+
+I will develop reusable R functions for calculating classification metrics, summarizing subgroup performance, and organizing model comparison results.
